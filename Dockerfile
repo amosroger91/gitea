@@ -5,7 +5,7 @@ ARG GOPROXY
 ENV GOPROXY=${GOPROXY:-direct}
 
 ARG GITEA_VERSION
-ARG TAGS="sqlite sqlite_unlock_notify"
+ARG TAGS=""
 ENV TAGS="bindata timetzdata $TAGS"
 ARG CGO_EXTRA_CFLAGS
 
@@ -25,7 +25,7 @@ WORKDIR ${GOPATH}/src/code.gitea.io/gitea
 RUN if [ -n "${GITEA_VERSION}" ]; then git checkout "${GITEA_VERSION}"; fi \
  && make clean-all build
 
-# Begin env-to-ini build
+# Build env-to-ini tool
 RUN go build contrib/environment-to-ini/environment-to-ini.go
 
 # Copy local files
@@ -41,6 +41,7 @@ RUN chmod 755 /tmp/local/usr/bin/entrypoint \
               /go/src/code.gitea.io/gitea/environment-to-ini
 RUN chmod 644 /go/src/code.gitea.io/gitea/contrib/autocompletion/bash_autocomplete
 
+# Final image
 FROM docker.io/library/alpine:3.21
 LABEL maintainer="maintainers@gitea.io"
 
@@ -55,7 +56,6 @@ RUN apk --no-cache add \
     linux-pam \
     openssh \
     s6 \
-    sqlite \
     su-exec \
     gnupg \
     && rm -rf /var/cache/apk/*
@@ -74,6 +74,14 @@ RUN addgroup \
 
 ENV USER=git
 ENV GITEA_CUSTOM=/data/gitea
+
+# PostgreSQL DB config (baked in)
+ENV GITEA__database__DB_TYPE=postgres
+ENV GITEA__database__HOST=pg-1905d323-proton-f56e.l.aivencloud.com:11494
+ENV GITEA__database__NAME=defaultdb
+ENV GITEA__database__USER=avnadmin
+ENV GITEA__database__PASSWD=AVNS_XZkmfAahcuphz_eDHFH
+ENV GITEA__database__SSL_MODE=require
 
 VOLUME ["/data"]
 
