@@ -9,7 +9,6 @@ ARG TAGS=""
 ENV TAGS="bindata timetzdata $TAGS"
 ARG CGO_EXTRA_CFLAGS
 
-# Build deps
 RUN apk --no-cache add \
     build-base \
     git \
@@ -17,21 +16,16 @@ RUN apk --no-cache add \
     npm \
     && rm -rf /var/cache/apk/*
 
-# Setup repo
 COPY . ${GOPATH}/src/code.gitea.io/gitea
 WORKDIR ${GOPATH}/src/code.gitea.io/gitea
 
-# Checkout version if set
 RUN if [ -n "${GITEA_VERSION}" ]; then git checkout "${GITEA_VERSION}"; fi \
  && make clean-all build
 
-# Build env-to-ini tool
 RUN go build contrib/environment-to-ini/environment-to-ini.go
 
-# Copy local files
 COPY docker/root /tmp/local
 
-# Set permissions
 RUN chmod 755 /tmp/local/usr/bin/entrypoint \
               /tmp/local/usr/local/bin/gitea \
               /tmp/local/etc/s6/gitea/* \
@@ -61,26 +55,18 @@ RUN apk --no-cache add \
     && rm -rf /var/cache/apk/*
 
 RUN addgroup \
-    -S -g 1000 \
-    git && \
-  adduser \
-    -S -H -D \
-    -h /data/git \
-    -s /bin/bash \
-    -u 1000 \
-    -G git \
-    git && \
-  echo "git:*" | chpasswd -e
+    -S -g 1000 git && \
+    adduser -S -H -D -h /data/git -s /bin/bash -u 1000 -G git git && \
+    echo "git:*" | chpasswd -e
 
 ENV USER=git
 ENV GITEA_CUSTOM=/data/gitea
 
-# PostgreSQL DB config (baked in)
+# PostgreSQL base configuration — password will be passed at runtime
 ENV GITEA__database__DB_TYPE=postgres
 ENV GITEA__database__HOST=pg-1905d323-proton-f56e.l.aivencloud.com:11494
 ENV GITEA__database__NAME=defaultdb
 ENV GITEA__database__USER=avnadmin
-ENV GITEA__database__PASSWD=
 ENV GITEA__database__SSL_MODE=require
 
 VOLUME ["/data"]
