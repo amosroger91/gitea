@@ -80,7 +80,7 @@ ENV GITEA__database__DB_TYPE=postgres
 ENV GITEA__database__HOST=pg-1905d323-proton-f56e.l.aivencloud.com:11494
 ENV GITEA__database__NAME=defaultdb
 ENV GITEA__database__USER=avnadmin
-ENV GITEA__database__PASSWD=AVNS_XZkmfAahcuphz_eDHFH
+ENV GITEA__database__PASSWD=
 ENV GITEA__database__SSL_MODE=require
 
 VOLUME ["/data"]
